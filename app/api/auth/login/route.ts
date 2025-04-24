@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Email dan password wajib diisi." }, { status: 400 });
   }
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findFirst({ where: { email } });
 
   if (!user) {
     return NextResponse.json({ error: "Email tidak ditemukan." }, { status: 401 });

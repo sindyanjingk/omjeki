@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Lengkapi semua field." }, { status: 400 });
   }
 
-  const userExists = await prisma.user.findUnique({ where: { email } });
+  const userExists = await prisma.user.findFirst({ where: { email } });
 
   if (userExists) {
     return NextResponse.json({ error: "Email sudah terdaftar." }, { status: 400 });

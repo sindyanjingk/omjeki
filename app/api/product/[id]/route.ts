@@ -1,10 +1,10 @@
 import { verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 type Params = Promise<{ id: string }>;
 
-export async function GET(req: Request, { params }: { params: Params }) {
+export async function GET(req: NextRequest, { params }: { params: Params }) {
     const { id } = await params;
     const product = await prisma.product.findFirst({
         where: {
@@ -23,7 +23,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
     return NextResponse.json(product);
 }
 
-export async function PUT(req: Request, { params }: { params: Params }) {
+export async function PUT(req: NextRequest, { params }: { params: Params }) {
     const { id } = await params;
     const authHeader = req.headers.get("authorization");
     const token = authHeader?.split(" ")[1];
@@ -52,7 +52,7 @@ export async function PUT(req: Request, { params }: { params: Params }) {
     return NextResponse.json(updatedProduct);
 }
 
-export async function DELETE(req: Request, { params }: { params: Params }) {
+export async function DELETE(req: NextRequest, { params }: { params: Params }) {
     const {id} = await params;
     const authHeader = req.headers.get("authorization");
     const token = authHeader?.split(" ")[1];
