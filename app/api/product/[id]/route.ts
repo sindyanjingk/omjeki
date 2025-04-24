@@ -2,14 +2,13 @@ import { verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-type Params = {
-    params: { id: string };
-};
+type Params = Promise<{ id: string }>;
 
-export async function GET(req: Request, { params }: Params) {
+export async function GET(req: Request, { params }: { params: Params }) {
+    const { id } = await params;
     const product = await prisma.product.findFirst({
         where: {
-            id: params.id,
+            id,
             deletedAt: null, // jangan ambil yang sudah dihapus
         },
         include: {
@@ -24,7 +23,8 @@ export async function GET(req: Request, { params }: Params) {
     return NextResponse.json(product);
 }
 
-export async function PUT(req: Request, { params }: Params) {
+export async function PUT(req: Request, { params }: { params: Params }) {
+    const { id } = await params;
     const authHeader = req.headers.get("authorization");
     const token = authHeader?.split(" ")[1];
     const user = verifyToken(token || "");
@@ -36,10 +36,10 @@ export async function PUT(req: Request, { params }: Params) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const body = await req.json();
-    const { name, price, quantity, sellerName, description, images } = body;
+    const { name, price, quantity, sellerName, description } = body;
 
     const updatedProduct = await prisma.product.update({
-        where: { id: params.id },
+        where: { id },
         data: {
             name,
             price: Number(price),
@@ -52,7 +52,8 @@ export async function PUT(req: Request, { params }: Params) {
     return NextResponse.json(updatedProduct);
 }
 
-export async function DELETE(req: Request, { params }: Params) {
+export async function DELETE(req: Request, { params }: { params: Params }) {
+    const {id} = await params;
     const authHeader = req.headers.get("authorization");
     const token = authHeader?.split(" ")[1];
     const user = verifyToken(token || "");
@@ -64,7 +65,7 @@ export async function DELETE(req: Request, { params }: Params) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     await prisma.product.update({
-        where: { id: params.id },
+        where: { id },
         data: {
             deletedAt: new Date(), // ← soft delete
         },

@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const token = req.headers.get("authorization")?.split(" ")[1];
   const user = verifyToken(token || "");
 
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
   return NextResponse.json(cart);
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   const token = req.headers.get("authorization")?.split(" ")[1];
   const user = verifyToken(token || "");
 
