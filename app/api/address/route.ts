@@ -29,12 +29,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-    const token = req.headers.get("authorization")?.split(" ")[1];
-    const user = verifyToken(token || "");
-
-    if (!user) {
-        return NextResponse.json({ error: "User not found" }, { status: 401 });
-    }
 
     const {
         kabupaten,
@@ -42,7 +36,18 @@ export async function POST(req: NextRequest) {
         kelurahan,
         keterangan,
         zip,
+        userId,
     } = await req.json();
+
+    const user = await prisma.user.findFirst({
+        where : {
+            id : userId
+        }
+    })
+
+    if (!user) {
+        return NextResponse.json({ error: "User not found" }, { status: 401 });
+    }
 
     try {
         const data = await prisma.address.create({

@@ -12,7 +12,6 @@ export async function POST(req: NextRequest) {
 
   const { products } = await req.json(); // products: [{ productId, quantity }]
 
-  // Cek jika produk tersedia di database
   const productIds = products.map((item: { productId: string }) => item.productId);
   const availableProducts = await prisma.product.findMany({
     where: { id: { in: productIds } },
@@ -22,51 +21,56 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Some products are not available" }, { status: 400 });
   }
 
-  // Cari cart user yang sudah ada
   let cart = await prisma.cart.findFirst({
     where: { userId: user.id },
-    include: {
-      items: true, // Sertakan item cart untuk memastikan produk yang sudah ada di cart
-    },
+    include: { items: true },
   });
 
-  // Jika cart belum ada, buat cart baru
   if (!cart) {
     cart = await prisma.cart.create({
       data: {
         userId: user.id,
         items: {
-          create: products.map((item: { productId: string, quantity: number }) => ({
+          create: products.map((item: { productId: string; quantity: number }) => ({
             productId: item.productId,
             quantity: item.quantity,
           })),
         },
       },
-      include: {
-        items: true,
-      },
+      include: { items: true },
     });
   } else {
-    // Jika cart sudah ada, tambahkan produk ke cart yang sudah ada
-    await prisma.cartItem.createMany({
-      data: products.map((item: { productId: string, quantity: number }) => ({
-        cartId: cart?.id,
-        productId: item.productId,
-        quantity: item.quantity,
-      })),
-    });
-    
-    // Refresh cart data to include new items
+    for (const item of products) {
+      const existingItem = cart.items.find(ci => ci.productId === item.productId);
+
+      if (existingItem) {
+        // Update quantity jika produk sudah ada di cart
+        await prisma.cartItem.update({
+          where: { id: existingItem.id },
+          data: { quantity: existingItem.quantity + item.quantity },
+        });
+      } else {
+        // Tambahkan item baru ke cart
+        await prisma.cartItem.create({
+          data: {
+            cartId: cart.id,
+            productId: item.productId,
+            quantity: item.quantity,
+          },
+        });
+      }
+    }
+
+    // Refresh cart data
     cart = await prisma.cart.findFirst({
       where: { id: cart.id },
-      include: {
-        items: true,
-      },
+      include: { items: true },
     });
   }
 
   return NextResponse.json(cart);
 }
+
 
 export async function GET(req: NextRequest) {
   const token = req.headers.get("authorization")?.split(" ")[1];
@@ -81,7 +85,11 @@ export async function GET(req: NextRequest) {
     include: {
       items: {
         include: {
-          product: true, // Sertakan informasi produk dalam cart
+          product: {
+            include : {
+              images : true
+            }
+          }
         },
       },
     },

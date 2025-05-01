@@ -22,7 +22,8 @@ export async function GET(req: NextRequest) {
                 createdAt: true,
                 avatar: true,
                 bio: true,
-                wa: true
+                wa: true,
+                address: true,
             }
         })
         if (!userProfile) {
