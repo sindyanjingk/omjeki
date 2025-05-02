@@ -33,6 +33,6 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ msg: "Success update avatar", url: blob.url });
     } catch (error) {
         console.error("Upload error:", error);
-        return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
+        return NextResponse.json({ error: "Failed to upload file", errornya : error }, { status: 500 });
     }
 }
