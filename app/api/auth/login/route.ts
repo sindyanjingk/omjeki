@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { email, password } = body;
+  const { email, password, fcmToken } = body;
 
   if (!email || !password) {
     return NextResponse.json({ error: "Email dan password wajib diisi." }, { status: 400 });
@@ -19,8 +19,18 @@ export async function POST(req: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: "Email tidak ditemukan." }, { status: 401 });
   }
+  if (user) {
+    await prisma.user.update({
+      where: {
+        id: user.id
+      },
+      data: {
+        fcmToken: fcmToken
+      }
+    })
+  }
 
-  const passwordMatch = await compare(password, user.password);
+  const passwordMatch = await compare(password, user.password!);
 
   if (!passwordMatch) {
     return NextResponse.json({ error: "Password salah." }, { status: 401 });
@@ -31,7 +41,7 @@ export async function POST(req: NextRequest) {
       id: user.id,
       email: user.email,
       name: user.name,
-      role : user.role
+      role: user.role
     },
     JWT_SECRET,
     { expiresIn: "7d" }

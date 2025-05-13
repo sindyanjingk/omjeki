@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
+import { messaging } from "@/lib/firebase-admin";
 
 export async function POST(req: NextRequest) {
   const token = req.headers.get("authorization")?.split(" ")[1];
@@ -10,6 +11,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const existUser = await prisma.user.findFirst({
+    where: {
+      id: user.id,
+    },
+  });
+  if(!existUser){
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
   const body = await req.json();
   const items: { productId: string; quantity: number }[] = body.items;
 
@@ -17,7 +26,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No items provided" }, { status: 400 });
   }
 
-  // Ambil data produk dari DB
   const productIds = items.map((i) => i.productId);
   const products = await prisma.product.findMany({
     where: {
@@ -29,13 +37,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Some productIds are invalid" }, { status: 400 });
   }
 
-  // Hitung total
   const total = items.reduce((sum, item) => {
     const product = products.find((p) => p.id === item.productId);
     return sum + item.quantity * (product?.price ?? 0);
   }, 0);
 
-  // Simpan transaksi
   const transaction = await prisma.transaction.create({
     data: {
       userId: user.id,
@@ -53,7 +59,6 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  // Kurangi atau hapus item dari cart
   for (const item of items) {
     const cartItem = await prisma.cartItem.findFirst({
       where: {
@@ -64,7 +69,6 @@ export async function POST(req: NextRequest) {
 
     if (cartItem) {
       if (cartItem.quantity > item.quantity) {
-        // Kurangi quantity
         await prisma.cartItem.update({
           where: { id: cartItem.id },
           data: {
@@ -72,7 +76,6 @@ export async function POST(req: NextRequest) {
           },
         });
       } else {
-        // Hapus dari cart kalau quantity-nya 0 atau lebih kecil
         await prisma.cartItem.delete({
           where: { id: cartItem.id },
         });
@@ -80,6 +83,22 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  if (existUser.fcmToken) {
+    try {
+      await messaging.send({
+        token: existUser.fcmToken,
+        notification: {
+          title: "Transaksi Berhasil",
+          body: `Total belanja kamu sebesar Rp${total.toLocaleString("id-ID")}`,
+        },
+        data: {
+          transactionId: transaction.id,
+        },
+      });
+    } catch (err) {
+      console.error("Gagal kirim notifikasi:", err);
+    }
+  }
 
   return NextResponse.json(transaction);
 }

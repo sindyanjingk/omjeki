@@ -12,12 +12,13 @@ model User {
   name        String
   email       String        @unique
   role        Role          @default(USER)
-  password    String
+  password    String?
   createdAt   DateTime      @default(now())
   avatar      String?
   bio         String?
   phone       String?
   wa          String
+  fcmToken    String?
   address     Address?
   Cart        Cart[]
   Transaction Transaction[]
