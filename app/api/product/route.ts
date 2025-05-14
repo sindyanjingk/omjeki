@@ -38,7 +38,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
   }
 
-  // Upload ke Vercel Blob
   const blob = await put(file.name, file, {
     access: 'public',
     addRandomSuffix: true,
@@ -49,6 +48,11 @@ export async function POST(req: NextRequest) {
   const quantity = formData.get('quantity') as string
   const sellerName = formData.get('sellerName') as string
   const description = formData.get('description') as string
+  const kabupaten = formData.get('kabupaten') as string
+  const kecamatan = formData.get('kecamatan') as string
+  const kelurahan = formData.get('kelurahan') as string
+  const zip = formData.get('zip') as string
+  const keterangan = formData.get('keterangan') as string
 
   if (!name || !price || !quantity || !sellerName) {
     return NextResponse.json({ error: "Field wajib diisi." }, { status: 400 });
@@ -66,6 +70,20 @@ export async function POST(req: NextRequest) {
           url: blob.url
         }
       },
+      seller : {
+        create : {
+          name : sellerName,
+          addresses : {
+            create : {
+              kabupaten,
+              kecamatan,
+              kelurahan,
+              zip,
+              keterangan
+            }
+          }
+        }
+      }
     },
     include: {
       images: true,

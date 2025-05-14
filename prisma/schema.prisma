@@ -29,13 +29,27 @@ model Address {
   zip        String
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
-  userId     String    @unique
+  userId     String?   @unique
   kabupaten  String
   kecamatan  String
   keterangan String
   kelurahan  String
   deletedAt  DateTime?
-  userInfo   User      @relation(fields: [userId], references: [id])
+  sellerId   String?   @unique
+  seller     Seller?   @relation(fields: [sellerId], references: [id])
+  userInfo   User?     @relation(fields: [userId], references: [id])
+}
+
+model Seller {
+  id        String    @id @default(uuid())
+  name      String
+  email     String?   @unique
+  password  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  addresses Address?
+  products  Product[]
 }
 
 model Product {
@@ -48,8 +62,11 @@ model Product {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   deletedAt       DateTime?
+  sellerId        String?
+  category        String?
   CartItem        CartItem[]
   images          Image?
+  seller          Seller?           @relation(fields: [sellerId], references: [id])
   TransactionItem TransactionItem[]
 }
 

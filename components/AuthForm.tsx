@@ -1,30 +1,46 @@
 // components/AuthForm.tsx
 "use client";
 
-import { useState } from "react";
+import { Loader2Icon } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface AuthFormProps {
   type: "login" | "register";
 }
 
 export default function AuthForm({ type }: AuthFormProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const router = useRouter();
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Simulasi login / register
-    if (type === "login") {
-      console.log("Logging in with", { email, password });
-    } else {
-      console.log("Registering with", { email, password });
+  const {
+    handleSubmit,
+    register,
+    formState: { errors, isSubmitting },
+    setError,
+    reset,
+  } = useForm({
+    defaultValues: {
+      email: "",
+      password: "",
     }
+  });
 
-    // Redirect misalnya ke dashboard
-    router.push("/");
+  const onSubmit = async (data: any) => {
+    setErrorMsg("");
+    const res = await signIn("credentials", {
+      redirect: false,
+      username: data.email, // Sesuai dengan field "username" di credentials
+      password: data.password,
+    });
+
+    if (res?.error) {
+      setErrorMsg("Email atau password salah");
+    } else if (res?.ok) {
+      router.push("/dashboard"); // ganti sesuai rute tujuan setelah login
+    }
   };
 
   return (
@@ -32,47 +48,32 @@ export default function AuthForm({ type }: AuthFormProps) {
       <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
         {type === "login" ? "Welcome Back!" : "Create an Account"}
       </h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <input
+          {...register("email", { required: "Email wajib di isi" })}
           type="email"
           placeholder="Email"
           className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
         />
+        {errors.email && <div className="text-sm text-red-500">{errors.email.message}</div>}
+
         <input
+          {...register("password", { required: "Password wajib di isi" })}
           type="password"
           placeholder="Password"
           className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
         />
+        {errors.password && <div className="text-sm text-red-500">{errors.password.message}</div>}
+
+        {errorMsg && <div className="text-sm text-red-500">{errorMsg}</div>}
+
         <button
           type="submit"
-          className="w-full py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition"
+          className="w-full py-3 bg-blue-600 flex items-center justify-center text-white rounded-xl hover:bg-blue-700 transition"
         >
-          {type === "login" ? "Login" : "Register"}
+          {isSubmitting ? <Loader2Icon className="animate-spin" /> : "Login"}
         </button>
       </form>
-      <p className="mt-4 text-center text-sm text-gray-600">
-        {type === "login" ? (
-          <>
-            Don't have an account?{" "}
-            <a href="/auth/register" className="text-blue-600 hover:underline">
-              Register
-            </a>
-          </>
-        ) : (
-          <>
-            Already have an account?{" "}
-            <a href="/auth/login" className="text-blue-600 hover:underline">
-              Login
-            </a>
-          </>
-        )}
-      </p>
     </div>
   );
 }

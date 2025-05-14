@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: "Email tidak ditemukan." }, { status: 401 });
   }
-  if (user) {
+  if (user && fcmToken) {
     await prisma.user.update({
       where: {
         id: user.id

@@ -18,13 +18,13 @@ export async function GET(req: NextRequest) {
             }
         })
         if (!userAddress) {
-            return NextResponse.json({ msg: "User dont have address", data: [] })
+            return NextResponse.json({ message: "User dont have address", data: [] })
         }
 
-        return NextResponse.json({ data: userAddress, msg: "Success get all address" });
+        return NextResponse.json({ data: userAddress, message: "Success get all address" });
     } catch (error) {
         console.log({ error });
-        return NextResponse.json({ msg: "Terjadi kesalahan" })
+        return NextResponse.json({ message: "Terjadi kesalahan" })
     }
 }
 
@@ -60,10 +60,10 @@ export async function POST(req: NextRequest) {
                 zip,
             }
         })
-        return NextResponse.json({ msg: "Success create address", data })
+        return NextResponse.json({ message: "Success create address", data })
     } catch (error) {
         console.log({ error });
-        return NextResponse.json({ msg: "Terjadi kesalahan" })
+        return NextResponse.json({ message: "Terjadi kesalahan" })
     }
 
 }
@@ -72,7 +72,15 @@ export async function PUT(req: NextRequest) {
     const token = req.headers.get("authorization")?.split(" ")[1];
     const user = verifyToken(token || "");
     if (!user) {
-        return NextResponse.json({ error: "User not found" }, { status: 401 });
+        return NextResponse.json({ message : "User not found" }, { status: 401 });
+    }
+
+    const existingUser = await prisma.user.findFirst({
+        where: { id: user.id },
+    });
+
+    if (!existingUser) {
+        return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
     try {
@@ -92,13 +100,14 @@ export async function PUT(req: NextRequest) {
         })
 
         if (!address) {
-            return NextResponse.json({ msg: "Address not found" }, { status: 404 })
+            return NextResponse.json({ message: "Address not found" }, { status: 404 })
         }
         const data = await prisma.address.update({
             where: {
                 id: id
             },
             data: {
+                userId: user.id,
                 kabupaten,
                 kecamatan,
                 kelurahan,
@@ -106,10 +115,10 @@ export async function PUT(req: NextRequest) {
                 zip,
             }
         })
-        return NextResponse.json({ msg: "Success update address", data })
+        return NextResponse.json({ message: "Success update address", data })
     } catch (error) {
         console.log({ error });
-        return NextResponse.json({ msg: "Terjadi kesalahan" })
+        return NextResponse.json({ message: "Terjadi kesalahan" })
     }
 }
 
@@ -128,7 +137,7 @@ export async function DELETE(req: NextRequest) {
             }
         })
         if (!address) {
-            return NextResponse.json({ msg: "Address not found" }, { status: 404 })
+            return NextResponse.json({ message: "Address not found" }, { status: 404 })
         }
         await prisma.address.update({
             where: {
@@ -138,9 +147,9 @@ export async function DELETE(req: NextRequest) {
                 deletedAt: new Date()
             }
         })
-        return NextResponse.json({ msg: "Success delete address" })
+        return NextResponse.json({ message: "Success delete address" })
     } catch (error) {
         console.log({ error });
-        return NextResponse.json({ msg: "Terjadi kesalahan" })
+        return NextResponse.json({ message: "Terjadi kesalahan" })
     }
 }
