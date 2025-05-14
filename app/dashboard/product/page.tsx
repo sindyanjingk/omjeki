@@ -1,6 +1,7 @@
 import ProductTable from "@/components/table/product-table";
 import { getProducts } from "@/lib/action/product";
 import { getSeller } from "@/lib/action/seller";
+import { prisma } from "@/lib/prisma";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -11,9 +12,14 @@ export const metadata: Metadata = {
 export default async function ProductPage() {
   const products = await getProducts();
   const sellers = await getSeller();
+  const category = await prisma.category.findMany({
+    where : {
+      deletedAt : null
+    }
+  })
   return (
     <main className="p-4 w-screen md:w-[1190px]">
-      <ProductTable sellers={sellers as any[]} initialProducts={products} />
+      <ProductTable category={category} sellers={sellers as any[]} initialProducts={products} />
     </main>
   );
 }

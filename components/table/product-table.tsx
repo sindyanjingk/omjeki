@@ -10,7 +10,7 @@ import { Prisma } from '@prisma/client';
 import ShowProductModal from '../modal/product/show-product-modal';
 import UpdateProductModal from '../modal/product/update-product';
 
-export default function ProductTable({ initialProducts, sellers }: { initialProducts: Prisma.ProductWhereInput[], sellers: Prisma.SellerWhereInput[] }) {
+export default function ProductTable({ initialProducts, sellers, category }: { initialProducts: Prisma.ProductWhereInput[], sellers: Prisma.SellerWhereInput[], category : Prisma.CategoryWhereInput[] }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [showOpen, setShowOpen] = useState(false);
   const [showEdit, setIsEdit] = useState(false);
@@ -19,6 +19,11 @@ export default function ProductTable({ initialProducts, sellers }: { initialProd
   const transformSellers = sellers.map((item) => ({
     label: String(item.name || ""),
     value: String(item.id || "")
+  }))
+
+  const transformCategory = category.map((item)=>({
+    label : item.name as string,
+    value : item.id as string,
   }))
 
   const handleDelete = async (id: string) => {
@@ -92,7 +97,7 @@ export default function ProductTable({ initialProducts, sellers }: { initialProd
         onClose={() => {
           setModalOpen(false);
         }}
-        onSubmit={() => { }}
+        category={transformCategory}
       />
     </div>
   );

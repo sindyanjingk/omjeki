@@ -19,17 +19,18 @@ export interface ProductFormData {
   quantity: number;
   description?: string;
   sellerId?: string;
+  categoryId?: string;
   image?: File | null;
 }
 
 interface ProductModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: ProductFormData) => void;
   sellers: { label: string; value: string }[];
+  category: { label: string; value: string }[]
 }
 
-export default function ProductModal({ isOpen, onClose, onSubmit, sellers }: ProductModalProps) {
+export default function ProductModal({ isOpen, onClose, sellers, category }: ProductModalProps) {
   const { control, handleSubmit, setValue, watch, reset, formState: { errors, isSubmitting } } = useForm<ProductFormData>({
     defaultValues: {
       name: '',
@@ -37,6 +38,7 @@ export default function ProductModal({ isOpen, onClose, onSubmit, sellers }: Pro
       quantity: 0,
       description: '',
       sellerId: '',
+      categoryId: '',
       image: null,
     },
   });
@@ -45,10 +47,10 @@ export default function ProductModal({ isOpen, onClose, onSubmit, sellers }: Pro
 
   const onFormSubmit = async (data: ProductFormData) => {
     const response = await addProductSellerImage(data);
-    if(response.success){
+    if (response.success) {
       toast.success("Product berhasil ditambahkan")
       window.location.reload()
-    }else{
+    } else {
       toast.error(response.message || "Gagal menambahkan product")
     }
     reset();
@@ -111,12 +113,37 @@ export default function ProductModal({ isOpen, onClose, onSubmit, sellers }: Pro
             <Controller
               control={control}
               name="sellerId"
-              defaultValue=""
               render={({ field }) => (
                 <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger className="w-full">Pilih Seller</SelectTrigger>
+                  <SelectTrigger className="w-full">
+                    {field.value
+                      ? sellers.find((item) => item.value === field.value)?.label
+                      : "Pilih Seller"}
+                  </SelectTrigger>
                   <SelectContent>
                     {sellers.map((item) => (
+                      <SelectItem value={item.value} key={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+
+            <Label>Kategori Produk</Label>
+            <Controller
+              control={control}
+              name="categoryId"
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger className="w-full">
+                    {field.value
+                      ? category.find((item) => item.value === field.value)?.label
+                      : "Pilih Kategori"}
+                  </SelectTrigger>
+                  <SelectContent>
+                    {category.map((item) => (
                       <SelectItem value={item.value} key={item.value}>
                         {item.label}
                       </SelectItem>

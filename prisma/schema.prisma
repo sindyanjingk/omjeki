@@ -63,11 +63,21 @@ model Product {
   updatedAt       DateTime          @updatedAt
   deletedAt       DateTime?
   sellerId        String?
-  category        String?
+  categoryId      String?
   CartItem        CartItem[]
   images          Image?
+  category        Category?         @relation(fields: [categoryId], references: [id])
   seller          Seller?           @relation(fields: [sellerId], references: [id])
   TransactionItem TransactionItem[]
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  Product   Product[]
 }
 
 model Image {
