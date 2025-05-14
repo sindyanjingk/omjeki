@@ -100,6 +100,11 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
     include: {
       images: true,
+      seller: {
+        include: {
+          addresses: true
+        }
+      }
     },
   });
 
