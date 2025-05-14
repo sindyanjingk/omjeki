@@ -123,7 +123,12 @@ export async function GET(req: NextRequest) {
     include: {
       items: {
         include: {
-          product: true,
+          product: {
+            include : {
+              images : true,
+              seller : true
+            }
+          }
         },
       },
     },
