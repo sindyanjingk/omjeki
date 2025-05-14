@@ -11,6 +11,7 @@ import { Loader2Icon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../ui/select';
+import Image from 'next/image';
 
 export interface ProductFormData {
   id?: string;
@@ -168,7 +169,7 @@ export default function ProductModal({ isOpen, onClose, sellers, category }: Pro
               />
               {previewImage && (
                 <div className="mt-2">
-                  <img src={previewImage} alt="Preview" className="w-32 h-32 object-cover" />
+                  <Image src={previewImage} alt="Preview" height={200} width={200} className="w-32 h-32 object-cover" />
                 </div>
               )}
             </div>

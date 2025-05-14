@@ -13,6 +13,7 @@ import { Prisma } from '@prisma/client';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
+import Image from 'next/image';
 
 
 export interface ProductFormData {
@@ -147,7 +148,7 @@ export default function UpdateProductModal({ isOpen, onClose, sellers, product  
               />
               {previewImage && (
                 <div className="mt-2">
-                  <img src={previewImage} alt="Preview" className="w-32 h-32 object-cover" />
+                  <Image src={previewImage} alt="Preview" height={200} width={200} className="w-32 h-32 object-cover" />
                 </div>
               )}
             </div>
