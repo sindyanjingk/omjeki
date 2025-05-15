@@ -8,20 +8,23 @@ datasource db {
 }
 
 model User {
-  id          String        @id @default(uuid())
-  name        String
-  email       String        @unique
-  role        Role          @default(USER)
-  password    String?
-  createdAt   DateTime      @default(now())
-  avatar      String?
-  bio         String?
-  phone       String?
-  wa          String
-  fcmToken    String?
-  address     Address?
-  Cart        Cart[]
-  Transaction Transaction[]
+  id           String         @id @default(uuid())
+  name         String
+  email        String         @unique
+  role         Role           @default(USER)
+  password     String?
+  createdAt    DateTime       @default(now())
+  avatar       String?
+  bio          String?
+  phone        String?
+  wa           String
+  fcmToken     String?
+  address      Address?
+  Cart         Cart[]
+  Notification Notification[]
+  Ojek         Ojek[]
+  Review       Review[]
+  Transaction  Transaction[]
 }
 
 model Address {
@@ -128,8 +131,46 @@ model TransactionItem {
   productId     String
   quantity      Int
   price         Int
+  ojekId        String?
+  ojek          Ojek?       @relation(fields: [ojekId], references: [id])
   product       Product     @relation(fields: [productId], references: [id])
   transaction   Transaction @relation(fields: [transactionId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  userId    String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Review {
+  id        String    @id @default(uuid())
+  userId    String
+  productId String
+  rating    Int
+  comment   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model Ojek {
+  id                String            @id @default(uuid())
+  alamatPenjemputan String
+  alamatTujuan      String
+  total             Int
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  delettedAt        DateTime?
+  userId            String
+  user              User              @relation(fields: [userId], references: [id])
+  TransactionItem   TransactionItem[]
 }
 
 enum Role {

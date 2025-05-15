@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       id: user.id,
     },
   });
-  if(!existUser){
+  if (!existUser) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
   const body = await req.json();
@@ -88,8 +88,34 @@ export async function POST(req: NextRequest) {
       await messaging.send({
         token: existUser.fcmToken,
         notification: {
-          title: "Transaksi Berhasil",
+          title: `Transaksi sebesar Rp${total.toLocaleString("id-ID")}  Berhasil`,
           body: `Total belanja kamu sebesar Rp${total.toLocaleString("id-ID")}`,
+        },
+        data: {
+          transactionId: transaction.id,
+        },
+      });
+    } catch (err) {
+      console.error("Gagal kirim notifikasi:", err);
+    }
+  }
+
+  const driver = await prisma.user.findMany({
+    where: {
+      role: "DRIVER",
+    },
+  });
+
+  for (const driverUser of driver) {
+    try {
+      if (driverUser.fcmToken === null) {
+        continue;
+      }
+      await messaging.send({
+        token: driverUser.fcmToken,
+        notification: {
+          title: "Transaksi Baru",
+          body: `Ada transaksi baru dengan total Rp${total.toLocaleString("id-ID")}`,
         },
         data: {
           transactionId: transaction.id,
@@ -124,9 +150,9 @@ export async function GET(req: NextRequest) {
       items: {
         include: {
           product: {
-            include : {
-              images : true,
-              seller : true
+            include: {
+              images: true,
+              seller: true
             }
           }
         },
